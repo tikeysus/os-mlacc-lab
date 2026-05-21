@@ -29,4 +29,11 @@ Track papers, articles, and documentation in `docs/readings/`:
 ./scripts/new_reading "Arrow paper"
 ```
 
+To install the shorter command once:
+
+```sh
+./scripts/install_commands
+new_reading "Arrow paper"
+```
+
 Each note includes the source metadata, core idea, project relevance, action items, open questions, and one key quote or figure.

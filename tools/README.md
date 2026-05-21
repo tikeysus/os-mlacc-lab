@@ -8,3 +8,8 @@ Expected scripts:
 - RISC-V toolchain validation
 - simulator smoke tests
 - benchmark result collection helpers
+
+Current helper commands:
+
+- `scripts/new_reading`: creates a reading note in `docs/readings/`
+- `scripts/install_commands`: installs short command aliases into `~/bin`
