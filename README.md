@@ -26,7 +26,7 @@ This gives the project a simple correctness baseline while the FPGA, simulator, 
 Track papers, articles, and documentation in `docs/readings/`:
 
 ```sh
-./new_reading "Arrow paper"
+./scripts/new_reading "Arrow paper"
 ```
 
 Each note includes the source metadata, core idea, project relevance, action items, open questions, and one key quote or figure.

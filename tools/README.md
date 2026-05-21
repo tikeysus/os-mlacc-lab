@@ -1,6 +1,6 @@
 # Tools
 
-Use this area for setup and reproducibility helpers.
+Use this area for setup notes and reproducibility helper documentation. Executable project scripts live in `scripts/`.
 
 Expected scripts:
 

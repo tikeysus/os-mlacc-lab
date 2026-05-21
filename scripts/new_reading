@@ -2,12 +2,13 @@
 set -eu
 
 if [ "$#" -eq 0 ]; then
-    echo "usage: ./new_reading \"reading name\"" >&2
+    echo "usage: ./scripts/new_reading \"reading name\"" >&2
     exit 1
 fi
 
 name="$*"
-repo_root="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+repo_root="$(CDPATH= cd -- "$script_dir/.." && pwd)"
 readings_dir="$repo_root/docs/readings"
 
 slug=$(
