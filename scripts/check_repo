@@ -1,0 +1,223 @@
+#!/usr/bin/env sh
+set -eu
+
+repo_root="$(git rev-parse --show-toplevel)"
+max_file_size=$((1024 * 1024))
+failure_file=$(mktemp "${TMPDIR:-/tmp}/check_repo.XXXXXX")
+trap 'rm -f "$failure_file"' EXIT
+
+fail() {
+    echo "error: $*" >&2
+    printf '1\n' > "$failure_file"
+}
+
+tracked_files() {
+    git -C "$repo_root" ls-files
+}
+
+text_files() {
+    tracked_files | while IFS= read -r file; do
+        case "$file" in
+            *.c|*.h|*.md|*.sh|Makefile|.gitignore|.githooks/*|scripts/*)
+                printf '%s\n' "$file"
+                ;;
+        esac
+    done
+}
+
+check_file_hygiene() {
+    tracked_files | while IFS= read -r file; do
+        path="$repo_root/$file"
+        [ -f "$path" ] || continue
+
+        size=$(wc -c < "$path" | tr -d ' ')
+        if [ "$size" -gt "$max_file_size" ]; then
+            fail "$file is larger than 1 MiB"
+        fi
+    done
+
+    text_files | while IFS= read -r file; do
+        path="$repo_root/$file"
+        [ -s "$path" ] || continue
+
+        if grep -n '[[:blank:]]$' "$path" >/dev/null; then
+            fail "$file has trailing whitespace"
+        fi
+
+        if grep -n "$(printf '\r')" "$path" >/dev/null; then
+            fail "$file has CRLF line endings"
+        fi
+
+        if grep -n -E '^(<<<<<<<|=======|>>>>>>>)' "$path" >/dev/null; then
+            fail "$file contains merge conflict markers"
+        fi
+
+        last_byte=$(tail -c 1 "$path" | od -An -t x1 | tr -d ' ')
+        if [ "$last_byte" != "0a" ]; then
+            fail "$file is missing a final newline"
+        fi
+    done
+}
+
+check_scripts() {
+    find "$repo_root/scripts" -type f | while IFS= read -r path; do
+        file=${path#"$repo_root/"}
+        name=$(basename "$file")
+
+        case "$name" in
+            *[!a-z0-9_]*)
+                fail "$file should use snake_case"
+                ;;
+        esac
+
+        if [ ! -x "$path" ]; then
+            fail "$file should be executable"
+        fi
+
+        if head -n 1 "$path" | grep -q '^#!'; then
+            sh -n "$path" || fail "$file failed shell syntax check"
+            if command -v shellcheck >/dev/null 2>&1; then
+                shellcheck "$path" || fail "$file failed shellcheck"
+            fi
+        fi
+    done
+}
+
+check_markdown() {
+    find "$repo_root/docs" -name '*.md' -type f | while IFS= read -r path; do
+        file=${path#"$repo_root/"}
+        awk '
+            /^#{1,6} / {
+                level = index($0, " ") - 1
+                if (previous && level > previous + 1) {
+                    printf "error: %s jumps from H%d to H%d\n", file, previous, level > "/dev/stderr"
+                    bad = 1
+                }
+                previous = level
+            }
+            END { exit bad ? 1 : 0 }
+        ' file="$file" "$path" || fail "$file has invalid heading order"
+    done
+}
+
+check_reading_notes() {
+    find "$repo_root/docs/readings" -maxdepth 1 -name '*.md' -type f | while IFS= read -r path; do
+        file=${path#"$repo_root/"}
+
+        case "$file" in
+            docs/readings/README.md|docs/readings/template.md)
+                continue
+                ;;
+        esac
+
+        for required in \
+            'title:' \
+            'link:' \
+            'type:' \
+            'date_read:' \
+            'status:' \
+            'topics:' \
+            'related_issues:' \
+            'priority:' \
+            '## Core Idea' \
+            '## What I Learned' \
+            '## Relevance to This Project' \
+            '## Action Items' \
+            '## Open Questions' \
+            '## Key Quote or Figure'
+        do
+            if ! grep -Fqx -- "$required" "$path" && ! grep -Fq -- "$required" "$path"; then
+                fail "$file is missing required reading note field: $required"
+            fi
+        done
+    done
+}
+
+check_c_style() {
+    find "$repo_root/software" -type f \( -name '*.c' -o -name '*.h' \) | while IFS= read -r path; do
+        file=${path#"$repo_root/"}
+
+        if command -v clang-format >/dev/null 2>&1; then
+            if ! clang-format --dry-run --Werror "$path" >/dev/null 2>&1; then
+                fail "$file is not clang-format clean"
+            fi
+        fi
+
+        awk '
+            BEGIN { depth = 0; max_depth = 0; in_function = 0; function_lines = 0 }
+            /^[[:alpha:]_][[:alnum:]_[:space:]\*]*[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\([^;]*\)[[:space:]]*\{/ {
+                name = $0
+                sub(/\(.*/, "", name)
+                sub(/.*[[:space:]\*]/, "", name)
+                if (name !~ /^[a-z][a-z0-9_]*$/) {
+                    printf "error: %s function %s should use snake_case\n", file, name > "/dev/stderr"
+                    bad = 1
+                }
+                in_function = 1
+                function_lines = 0
+                depth = 1
+                max_depth = 1
+            }
+            in_function {
+                function_lines++
+                opens = gsub(/\{/, "{")
+                closes = gsub(/\}/, "}")
+                if (function_lines > 1) {
+                    depth += opens - closes
+                }
+                if (depth > max_depth) {
+                    max_depth = depth
+                }
+                if (depth <= 0) {
+                    if (function_lines > 80) {
+                        printf "error: %s function is longer than 80 lines\n", file > "/dev/stderr"
+                        bad = 1
+                    }
+                    if (max_depth > 4) {
+                        printf "error: %s function nesting exceeds 4 levels\n", file > "/dev/stderr"
+                        bad = 1
+                    }
+                    in_function = 0
+                }
+            }
+            END { exit bad ? 1 : 0 }
+        ' file="$file" "$path" || fail "$file failed C style checks"
+
+        lines=$(wc -l < "$path" | tr -d ' ')
+        if [ "$lines" -gt 500 ]; then
+            fail "$file is longer than 500 lines"
+        fi
+    done
+}
+
+check_repo_structure() {
+    tracked_files | while IFS= read -r file; do
+        case "$file" in
+            build/*)
+                fail "$file should not be committed from build/"
+                ;;
+            src/*|include/*)
+                fail "$file should live under software/ now"
+                ;;
+            *.c|*.h)
+                case "$file" in
+                    software/*|hardware/*) ;;
+                    *) fail "$file should live under software/ or hardware/" ;;
+                esac
+                ;;
+        esac
+    done
+}
+
+check_file_hygiene
+check_scripts
+check_markdown
+check_reading_notes
+check_c_style
+check_repo_structure
+
+if [ -s "$failure_file" ]; then
+    exit 1
+fi
+
+echo "repository checks passed"

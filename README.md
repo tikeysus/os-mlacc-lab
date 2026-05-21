@@ -21,6 +21,20 @@ make run
 
 This gives the project a simple correctness baseline while the FPGA, simulator, and RISC-V toolchain pieces are added.
 
+To run the current local checks:
+
+```sh
+make verify
+```
+
+The checks are summarized in `docs/quality.md`.
+
+To install the Git pre-commit hook:
+
+```sh
+./scripts/install_hooks
+```
+
 ## Reading Notes
 
 Track papers, articles, and documentation in `docs/readings/`:
