@@ -1,0 +1,70 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "$#" -eq 0 ]; then
+    echo "usage: ./new_reading \"reading name\"" >&2
+    exit 1
+fi
+
+name="$*"
+repo_root="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+readings_dir="$repo_root/docs/readings"
+
+slug=$(
+    printf '%s' "$name" |
+    tr '[:upper:]' '[:lower:]' |
+    sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//'
+)
+
+if [ -z "$slug" ]; then
+    echo "error: reading name must contain at least one letter or number" >&2
+    exit 1
+fi
+
+path="$readings_dir/$slug.md"
+title=$(
+    printf '%s' "$name" |
+    sed 's/\\/\\\\/g; s/"/\\"/g'
+)
+
+if [ -e "$path" ]; then
+    echo "error: $path already exists" >&2
+    exit 1
+fi
+
+mkdir -p "$readings_dir"
+
+cat > "$path" <<EOF
+---
+title: "$title"
+link:
+type:
+date_read:
+status:
+topics:
+related_issues:
+priority:
+---
+
+# $name
+
+## Core Idea
+
+
+## What I Learned
+
+
+## Relevance to This Project
+
+
+## Action Items
+
+
+## Open Questions
+
+
+## Key Quote or Figure
+
+EOF
+
+echo "created $path"
