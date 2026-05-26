@@ -2,6 +2,8 @@
 
 These are the next high-value project planning and bring-up tasks mirrored as GitHub issues.
 
+The active label scheme for these and future issues is documented in `docs/issue-labels.md`.
+
 ## Define project scope and architecture for the RISC-V vector accelerator
 
 Read and summarize the Arrow reference design and select the implementation approach for this project. Decide the FPGA board, base scalar core, and integration style: either an AXI-attached accelerator or a tightly coupled RISC-V vector unit. Produce a one-page architecture note with a block diagram, a minimal v1 feature set, and the exact ML kernels to target first, for example vector add, dot product, and a small matrix multiply. Include the planned accelerator interface, signal responsibilities, and the assumptions about clock, memory, and peripheral support.
