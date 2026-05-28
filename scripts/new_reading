@@ -33,23 +33,26 @@ if [ -z "$slug" ]; then
     exit 1
 fi
 
-path="$readings_dir/$slug.md"
+reading_dir="$readings_dir/$slug"
+notes_path="$reading_dir/notes.md"
+pdf_path="$reading_dir/paper.pdf"
 title=$(
     printf '%s' "$name" |
     sed 's/\\/\\\\/g; s/"/\\"/g'
 )
 
-if [ -e "$path" ]; then
-    echo "error: $path already exists" >&2
+if [ -e "$reading_dir" ]; then
+    echo "error: $reading_dir already exists" >&2
     exit 1
 fi
 
-mkdir -p "$readings_dir"
+mkdir -p "$reading_dir"
 
-cat > "$path" <<EOF
+cat > "$notes_path" <<EOF
 ---
 title: "$title"
 link:
+pdf: paper.pdf
 type:
 date_read:
 status:
@@ -79,4 +82,5 @@ priority:
 
 EOF
 
-echo "created $path"
+echo "created $notes_path"
+echo "add the paper PDF at $pdf_path"

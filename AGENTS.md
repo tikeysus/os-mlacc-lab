@@ -12,7 +12,7 @@ This repository is an OS and ML accelerator lab for a RISC-V or Arrow-style vect
 ## Quality Checks
 
 - Run `make verify` before committing code or workflow changes.
-- Keep Git hooks installed with `./scripts/install_hooks` when working locally.
+- Use `clang-tidy` for Clippy-like C checks when it is available locally.
 - Keep shell scripts POSIX `sh` unless there is a clear reason to require another shell.
 - Make executable helper scripts live in `scripts/` and use `snake_case` names.
 - Keep generated build output out of git.

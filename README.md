@@ -29,12 +29,6 @@ make verify
 
 The checks are summarized in `docs/quality.md`.
 
-To install the Git pre-commit hook:
-
-```sh
-./scripts/install_hooks
-```
-
 ## Reading Notes
 
 Track papers, articles, and documentation in `docs/readings/`:

@@ -1,6 +1,7 @@
 ---
 title:
 link:
+pdf: paper.pdf
 type:
 date_read:
 status:
@@ -27,4 +28,3 @@ priority:
 
 
 ## Key Quote or Figure
-

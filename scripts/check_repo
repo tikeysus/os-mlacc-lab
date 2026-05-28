@@ -3,6 +3,7 @@ set -eu
 
 repo_root="$(git rev-parse --show-toplevel)"
 max_file_size=$((1024 * 1024))
+max_reading_pdf_size=$((50 * 1024 * 1024))
 failure_file=$(mktemp "${TMPDIR:-/tmp}/check_repo.XXXXXX")
 trap 'rm -f "$failure_file"' EXIT
 
@@ -18,7 +19,7 @@ tracked_files() {
 text_files() {
     tracked_files | while IFS= read -r file; do
         case "$file" in
-            *.c|*.h|*.md|*.sh|Makefile|.gitignore|.githooks/*|scripts/*)
+            *.c|*.h|*.md|*.sh|Makefile|.clang-tidy|.gitignore|scripts/*)
                 printf '%s\n' "$file"
                 ;;
         esac
@@ -32,7 +33,16 @@ check_file_hygiene() {
 
         size=$(wc -c < "$path" | tr -d ' ')
         if [ "$size" -gt "$max_file_size" ]; then
-            fail "$file is larger than 1 MiB"
+            case "$file" in
+                docs/readings/*/*.pdf)
+                    if [ "$size" -gt "$max_reading_pdf_size" ]; then
+                        fail "$file is larger than 50 MiB"
+                    fi
+                    ;;
+                *)
+                    fail "$file is larger than 1 MiB"
+                    ;;
+            esac
         fi
     done
 
@@ -100,8 +110,35 @@ check_markdown() {
     done
 }
 
+check_reading_note_file() {
+    path="$1"
+    file=${path#"$repo_root/"}
+
+    for required in \
+        'title:' \
+        'link:' \
+        'pdf:' \
+        'type:' \
+        'date_read:' \
+        'status:' \
+        'topics:' \
+        'related_issues:' \
+        'priority:' \
+        '## Core Idea' \
+        '## What I Learned' \
+        '## Relevance to This Project' \
+        '## Action Items' \
+        '## Open Questions' \
+        '## Key Quote or Figure'
+    do
+        if ! grep -Fqx -- "$required" "$path" && ! grep -Fq -- "$required" "$path"; then
+            fail "$file is missing required reading note field: $required"
+        fi
+    done
+}
+
 check_reading_notes() {
-    find "$repo_root/docs/readings" -maxdepth 1 -name '*.md' -type f | while IFS= read -r path; do
+    find "$repo_root/docs/readings" -maxdepth 2 -name '*.md' -type f | while IFS= read -r path; do
         file=${path#"$repo_root/"}
 
         case "$file" in
@@ -110,26 +147,17 @@ check_reading_notes() {
                 ;;
         esac
 
-        for required in \
-            'title:' \
-            'link:' \
-            'type:' \
-            'date_read:' \
-            'status:' \
-            'topics:' \
-            'related_issues:' \
-            'priority:' \
-            '## Core Idea' \
-            '## What I Learned' \
-            '## Relevance to This Project' \
-            '## Action Items' \
-            '## Open Questions' \
-            '## Key Quote or Figure'
-        do
-            if ! grep -Fqx -- "$required" "$path" && ! grep -Fq -- "$required" "$path"; then
-                fail "$file is missing required reading note field: $required"
-            fi
-        done
+        case "$file" in
+            docs/readings/*/notes.md)
+                check_reading_note_file "$path"
+                ;;
+            docs/readings/*.md)
+                fail "$file should move into docs/readings/<slug>/notes.md"
+                ;;
+            *)
+                fail "$file should be named notes.md"
+                ;;
+        esac
     done
 }
 
@@ -190,6 +218,18 @@ check_c_style() {
     done
 }
 
+check_clang_tidy() {
+    if ! command -v clang-tidy >/dev/null 2>&1; then
+        echo "warning: clang-tidy not found; skipping C static analysis" >&2
+        return
+    fi
+
+    find "$repo_root/software" -type f -name '*.c' | while IFS= read -r path; do
+        file=${path#"$repo_root/"}
+        clang-tidy "$path" -- -I"$repo_root/software/include" -std=c11 || fail "$file failed clang-tidy"
+    done
+}
+
 check_repo_structure() {
     tracked_files | while IFS= read -r file; do
         case "$file" in
@@ -205,6 +245,12 @@ check_repo_structure() {
                     *) fail "$file should live under software/ or hardware/" ;;
                 esac
                 ;;
+            *.pdf)
+                case "$file" in
+                    docs/readings/*/*.pdf) ;;
+                    *) fail "$file should live with a reading under docs/readings/<slug>/" ;;
+                esac
+                ;;
         esac
     done
 }
@@ -214,6 +260,7 @@ check_scripts
 check_markdown
 check_reading_notes
 check_c_style
+check_clang_tidy
 check_repo_structure
 
 if [ -s "$failure_file" ]; then
