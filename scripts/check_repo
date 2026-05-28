@@ -3,7 +3,6 @@ set -eu
 
 repo_root="$(git rev-parse --show-toplevel)"
 max_file_size=$((1024 * 1024))
-max_reading_pdf_size=$((50 * 1024 * 1024))
 failure_file=$(mktemp "${TMPDIR:-/tmp}/check_repo.XXXXXX")
 trap 'rm -f "$failure_file"' EXIT
 
@@ -33,16 +32,7 @@ check_file_hygiene() {
 
         size=$(wc -c < "$path" | tr -d ' ')
         if [ "$size" -gt "$max_file_size" ]; then
-            case "$file" in
-                docs/readings/*/*.pdf)
-                    if [ "$size" -gt "$max_reading_pdf_size" ]; then
-                        fail "$file is larger than 50 MiB"
-                    fi
-                    ;;
-                *)
-                    fail "$file is larger than 1 MiB"
-                    ;;
-            esac
+            fail "$file is larger than 1 MiB"
         fi
     done
 
@@ -107,57 +97,6 @@ check_markdown() {
             }
             END { exit bad ? 1 : 0 }
         ' file="$file" "$path" || fail "$file has invalid heading order"
-    done
-}
-
-check_reading_note_file() {
-    path="$1"
-    file=${path#"$repo_root/"}
-
-    for required in \
-        'title:' \
-        'link:' \
-        'pdf:' \
-        'type:' \
-        'date_read:' \
-        'status:' \
-        'topics:' \
-        'related_issues:' \
-        'priority:' \
-        '## Core Idea' \
-        '## What I Learned' \
-        '## Relevance to This Project' \
-        '## Action Items' \
-        '## Open Questions' \
-        '## Key Quote or Figure'
-    do
-        if ! grep -Fqx -- "$required" "$path" && ! grep -Fq -- "$required" "$path"; then
-            fail "$file is missing required reading note field: $required"
-        fi
-    done
-}
-
-check_reading_notes() {
-    find "$repo_root/docs/readings" -maxdepth 2 -name '*.md' -type f | while IFS= read -r path; do
-        file=${path#"$repo_root/"}
-
-        case "$file" in
-            docs/readings/README.md|docs/readings/template.md)
-                continue
-                ;;
-        esac
-
-        case "$file" in
-            docs/readings/*/notes.md)
-                check_reading_note_file "$path"
-                ;;
-            docs/readings/*.md)
-                fail "$file should move into docs/readings/<slug>/notes.md"
-                ;;
-            *)
-                fail "$file should be named notes.md"
-                ;;
-        esac
     done
 }
 
@@ -253,12 +192,6 @@ check_repo_structure() {
                     *) fail "$file should live under software/ or hardware/" ;;
                 esac
                 ;;
-            *.pdf)
-                case "$file" in
-                    docs/readings/*/*.pdf) ;;
-                    *) fail "$file should live with a reading under docs/readings/<slug>/" ;;
-                esac
-                ;;
         esac
     done
 }
@@ -266,7 +199,6 @@ check_repo_structure() {
 check_file_hygiene
 check_scripts
 check_markdown
-check_reading_notes
 check_c_style
 check_clang_tidy
 check_repo_structure

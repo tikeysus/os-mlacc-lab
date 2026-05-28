@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This repository is an OS and ML accelerator lab for a RISC-V or Arrow-style vector accelerator. Keep the repo navigable and lightweight: prefer small, explicit files and workflows that make future hardware, software, and reading work easy to resume.
+This repository is an OS and ML accelerator lab for a RISC-V or Arrow-style vector accelerator. Keep the repo navigable and lightweight: prefer small, explicit files and workflows that make future hardware and software work easy to resume.
 
 ## Working Style
 
@@ -24,14 +24,8 @@ This repository is an OS and ML accelerator lab for a RISC-V or Arrow-style vect
 - Use spaces for C, shell, and Markdown indentation. Makefile recipes must use tabs.
 - Markdown notes should have orderly headings and no filler sections.
 
-## Reading Notes
-
-- Reading notes live in `docs/readings/`.
-- Create notes with `new_reading "Name"` after installing commands, or `./scripts/new_reading "Name"` from the repo root.
-- Every reading note should keep the required metadata and sections filled when it becomes a real note.
-
 ## Documentation Bias
 
-- Capture decisions separately from readings when choices become concrete.
+- Capture decisions separately from background research when choices become concrete.
 - Favor concise architecture, bring-up, benchmark, and runtime notes that can be linked back to GitHub issues.
 - Avoid adding broad templates or process files unless they support a repeated workflow.

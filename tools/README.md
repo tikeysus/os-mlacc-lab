@@ -11,6 +11,4 @@ Expected scripts:
 
 Current helper commands:
 
-- `scripts/new_reading`: creates a reading note in `docs/readings/`
-- `scripts/install_commands`: installs short command aliases into `~/bin`
 - `scripts/check_repo`: runs repository hygiene, shell, Markdown, C style, and structure checks
