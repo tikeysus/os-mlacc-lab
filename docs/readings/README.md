@@ -8,6 +8,12 @@ Create a new reading note from the repository root with:
 ./scripts/new_reading "Arrow paper"
 ```
 
+If you already have the PDF, pass it as the final argument:
+
+```sh
+./scripts/new_reading "Arrow paper" ~/Downloads/arrow-paper.pdf
+```
+
 For the shorter command, run the installer once:
 
 ```sh
@@ -23,7 +29,7 @@ docs/readings/arrow-paper/
   paper.pdf
 ```
 
-Keep the note in `notes.md`. Put the source PDF for the paper at `paper.pdf` so the note and paper stay together and can be committed together.
+Keep the note in `notes.md`. Put the source PDF for the paper at `paper.pdf` so the note and paper stay together and can be committed together. When a PDF path is passed to `new_reading`, the helper copies it there for you.
 
 ## Naming
 
@@ -32,6 +38,7 @@ Use short, descriptive names. The helper converts the name into a safe lowercase
 Examples:
 
 - `./scripts/new_reading "Arrow paper"` creates `docs/readings/arrow-paper/notes.md`
+- `./scripts/new_reading "Arrow paper" ~/Downloads/arrow-paper.pdf` also copies the PDF to `docs/readings/arrow-paper/paper.pdf`
 - `./scripts/new_reading "RVV toolchain notes"` creates `docs/readings/rvv-toolchain-notes/notes.md`
 - `new_reading "Arrow paper"` works after running `./scripts/install_commands`
 

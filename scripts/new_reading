@@ -2,11 +2,43 @@
 set -eu
 
 if [ "$#" -eq 0 ]; then
-    echo "usage: ./scripts/new_reading \"reading name\"" >&2
+    echo "usage: ./scripts/new_reading \"reading name\" [paper.pdf]" >&2
     exit 1
 fi
 
-name="$*"
+last_arg=
+for arg do
+    last_arg="$arg"
+done
+
+pdf_source=
+case "$last_arg" in
+    *.pdf|*.PDF)
+        if [ "$#" -lt 2 ]; then
+            echo "error: reading name is required when passing a PDF" >&2
+            exit 1
+        fi
+
+        pdf_source="$last_arg"
+        if [ ! -f "$pdf_source" ]; then
+            echo "error: PDF not found: $pdf_source" >&2
+            exit 1
+        fi
+
+        name=
+        while [ "$#" -gt 1 ]; do
+            if [ -z "$name" ]; then
+                name="$1"
+            else
+                name="$name $1"
+            fi
+            shift
+        done
+        ;;
+    *)
+        name="$*"
+        ;;
+esac
 
 script_path="$0"
 while [ -h "$script_path" ]; do
@@ -21,6 +53,12 @@ done
 script_dir="$(CDPATH= cd -- "$(dirname -- "$script_path")" && pwd)"
 repo_root="$(CDPATH= cd -- "$script_dir/.." && pwd)"
 readings_dir="$repo_root/docs/readings"
+template_path="$readings_dir/template.md"
+
+if [ ! -f "$template_path" ]; then
+    echo "error: missing reading template: $template_path" >&2
+    exit 1
+fi
 
 slug=$(
     printf '%s' "$name" |
@@ -48,39 +86,25 @@ fi
 
 mkdir -p "$reading_dir"
 
-cat > "$notes_path" <<EOF
----
-title: "$title"
-link:
-pdf: paper.pdf
-type:
-date_read:
-status:
-topics:
-related_issues:
-priority:
----
+awk -v title="$title" -v heading="$name" '
+    $0 == "title:" {
+        print "title: \"" title "\""
+        next
+    }
+    $0 == "# Title" {
+        print "# " heading
+        next
+    }
+    { print }
+' "$template_path" > "$notes_path"
 
-# $name
-
-## Core Idea
-
-
-## What I Learned
-
-
-## Relevance to This Project
-
-
-## Action Items
-
-
-## Open Questions
-
-
-## Key Quote or Figure
-
-EOF
+if [ -n "$pdf_source" ]; then
+    cp "$pdf_source" "$pdf_path"
+fi
 
 echo "created $notes_path"
-echo "add the paper PDF at $pdf_path"
+if [ -n "$pdf_source" ]; then
+    echo "copied $pdf_source -> $pdf_path"
+else
+    echo "add the paper PDF at $pdf_path"
+fi
