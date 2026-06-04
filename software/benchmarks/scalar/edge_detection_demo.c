@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "image_kernels.h"
+#include "../../include/image_kernels.h"
 
 int main(void) {
     uint8_t input[64] = {0};

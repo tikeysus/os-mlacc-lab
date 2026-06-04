@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "ml_kernels.h"
+#include "../../include/ml_kernels.h"
 
 int main(void) {
     const float a[4] = {1.0f, 2.0f, 3.0f, 4.0f};
