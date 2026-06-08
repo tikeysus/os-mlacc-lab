@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "$#" -eq 0 ]; then
+    echo "usage: $0 TEST_EXECUTABLE..." >&2
+    exit 2
+fi
+
+results_file=$(mktemp "${TMPDIR:-/tmp}/run_tests.XXXXXX")
+trap 'rm -f "$results_file"' EXIT
+
+execution_failures=0
+
+for test_executable in "$@"; do
+    if output=$("$test_executable" 2>&1); then
+        :
+    else
+        status=$?
+        echo "error: $test_executable exited with status $status" >&2
+        if ! printf '%s\n' "$output" | grep -q ':FAIL$'; then
+            execution_failures=$((execution_failures + 1))
+        fi
+    fi
+
+    printf '%s\n' "$output" >> "$results_file"
+    printf '%s\n' "$output" | awk '
+        /^-+$/ { next }
+        /^[0-9]+ Tests [0-9]+ Failures [0-9]+ Ignored / { next }
+        /^(OK|FAIL)$/ { next }
+        { print }
+    '
+done
+
+tests=$(grep -E -c ':(PASS|FAIL|IGNORE)$' "$results_file" || true)
+failures=$(grep -E -c ':FAIL$' "$results_file" || true)
+ignored=$(grep -E -c ':IGNORE$' "$results_file" || true)
+failures=$((failures + execution_failures))
+
+printf '\n%s Tests %s Failures %s Ignored\n' "$tests" "$failures" "$ignored"
+
+if [ "$failures" -ne 0 ]; then
+    exit 1
+fi
+
+echo "OK"
