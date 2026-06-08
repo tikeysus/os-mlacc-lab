@@ -42,6 +42,7 @@ void threshold_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
 
 int convolve_u8(image_u8_view src, image_u8 dst, const int16_t *kernel, size_t kernel_width,
                 size_t kernel_height) {
+    /* Each stride must span at least the logical row width before row offsets are used. */
     if (kernel == 0 || !image_shapes_are_valid(src, dst)) {
         return IMAGE_KERNEL_INVALID_ARGUMENT;
     }
