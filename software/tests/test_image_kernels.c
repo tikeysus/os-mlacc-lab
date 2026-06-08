@@ -279,6 +279,114 @@ static void test_sobel3x3_u8_uses_stride(void) {
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, output, 20);
 }
 
+static void test_image_kernels_reject_null_buffers(void) {
+    const int16_t kernel[1] = {1};
+    const image_u8_view src = {
+        .data = NULL,
+        .width = 1,
+        .height = 1,
+        .stride = 1,
+    };
+    const image_u8 dst = {
+        .data = NULL,
+        .width = 1,
+        .height = 1,
+        .stride = 1,
+    };
+
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_INVALID_ARGUMENT, threshold_u8(src, dst, 1));
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_INVALID_ARGUMENT, convolve_u8(src, dst, kernel, 1, 1));
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_INVALID_ARGUMENT, sobel3x3_u8(src, dst, 1));
+}
+
+static void test_image_kernels_reject_overflowing_stride(void) {
+    const uint8_t input[1] = {1};
+    uint8_t output[1] = {0};
+    const image_u8_view src = {
+        .data = input,
+        .width = 1,
+        .height = 2,
+        .stride = SIZE_MAX,
+    };
+    const image_u8 dst = {
+        .data = output,
+        .width = 1,
+        .height = 2,
+        .stride = 1,
+    };
+
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_INVALID_ARGUMENT, threshold_u8(src, dst, 1));
+}
+
+static void test_threshold_u8_allows_exact_in_place_operation(void) {
+    const uint8_t expected[4] = {0, 0, 255, 255};
+    uint8_t pixels[4] = {1, 127, 128, 255};
+    const image_u8_view src = {
+        .data = pixels,
+        .width = 4,
+        .height = 1,
+        .stride = 4,
+    };
+    const image_u8 dst = {
+        .data = pixels,
+        .width = 4,
+        .height = 1,
+        .stride = 4,
+    };
+
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_OK, threshold_u8(src, dst, 128));
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, pixels, 4);
+}
+
+static void test_image_kernels_reject_unsafe_overlap(void) {
+    uint8_t pixels[18] = {0};
+    const int16_t kernel[1] = {1};
+    const image_u8_view src = {
+        .data = pixels,
+        .width = 3,
+        .height = 3,
+        .stride = 3,
+    };
+    const image_u8 shifted_dst = {
+        .data = pixels + 1,
+        .width = 3,
+        .height = 3,
+        .stride = 3,
+    };
+    const image_u8 same_dst = {
+        .data = pixels,
+        .width = 3,
+        .height = 3,
+        .stride = 3,
+    };
+
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_OVERLAPPING_BUFFERS, threshold_u8(src, shifted_dst, 1));
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_OVERLAPPING_BUFFERS,
+                          convolve_u8(src, same_dst, kernel, 1, 1));
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_OVERLAPPING_BUFFERS, sobel3x3_u8(src, same_dst, 1));
+}
+
+static void test_sobel3x3_u8_clears_tiny_image(void) {
+    const uint8_t input[2] = {100, 200};
+    const uint8_t expected[2] = {0, 0};
+    uint8_t output[2] = {255, 255};
+    const image_u8_view src = {
+        .data = input,
+        .width = 2,
+        .height = 1,
+        .stride = 2,
+    };
+    const image_u8 dst = {
+        .data = output,
+        .width = 2,
+        .height = 1,
+        .stride = 2,
+    };
+
+    TEST_ASSERT_EQUAL_INT(IMAGE_KERNEL_OK, sobel3x3_u8(src, dst, 1));
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, output, 2);
+}
+
 int main(void) {
     UNITY_BEGIN();
 
@@ -292,6 +400,11 @@ int main(void) {
     RUN_TEST(test_sobel3x3_u8_detects_vertical_edge);
     RUN_TEST(test_sobel3x3_u8_applies_threshold);
     RUN_TEST(test_sobel3x3_u8_uses_stride);
+    RUN_TEST(test_image_kernels_reject_null_buffers);
+    RUN_TEST(test_image_kernels_reject_overflowing_stride);
+    RUN_TEST(test_threshold_u8_allows_exact_in_place_operation);
+    RUN_TEST(test_image_kernels_reject_unsafe_overlap);
+    RUN_TEST(test_sobel3x3_u8_clears_tiny_image);
 
     return UNITY_END();
 }

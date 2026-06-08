@@ -21,12 +21,45 @@ static int image_shapes_are_valid(image_u8_view src, image_u8 dst) {
         return 0;
     }
 
-    return src.stride >= src.width && dst.stride >= dst.width;
+    if (src.stride < src.width || dst.stride < dst.width) {
+        return 0;
+    }
+
+    if (src.height - 1 > (SIZE_MAX - src.width) / src.stride) {
+        return 0;
+    }
+
+    return dst.height - 1 <= (SIZE_MAX - dst.width) / dst.stride;
 }
 
 static int32_t abs_i32(int32_t value) { return value < 0 ? -value : value; }
 
-void threshold_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
+static size_t image_span(size_t width, size_t height, size_t stride) {
+    return ((height - 1) * stride) + width;
+}
+
+static int image_buffers_overlap(image_u8_view src, image_u8 dst) {
+    const uintptr_t src_start = (uintptr_t)src.data;
+    const uintptr_t dst_start = (uintptr_t)dst.data;
+    const size_t src_span = image_span(src.width, src.height, src.stride);
+    const size_t dst_span = image_span(dst.width, dst.height, dst.stride);
+
+    if (src_span > UINTPTR_MAX - src_start || dst_span > UINTPTR_MAX - dst_start) {
+        return 1;
+    }
+
+    return src_start < dst_start + dst_span && dst_start < src_start + src_span;
+}
+
+int threshold_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
+    if (!image_shapes_are_valid(src, dst)) {
+        return IMAGE_KERNEL_INVALID_ARGUMENT;
+    }
+
+    if (image_buffers_overlap(src, dst) && (src.data != dst.data || src.stride != dst.stride)) {
+        return IMAGE_KERNEL_OVERLAPPING_BUFFERS;
+    }
+
     const size_t width = src.width < dst.width ? src.width : dst.width;
     const size_t height = src.height < dst.height ? src.height : dst.height;
 
@@ -38,6 +71,8 @@ void threshold_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
             dst_row[x] = src_row[x] >= threshold ? UINT8_MAX : 0;
         }
     }
+
+    return IMAGE_KERNEL_OK;
 }
 
 int convolve_u8(image_u8_view src, image_u8 dst, const int16_t *kernel, size_t kernel_width,
@@ -57,6 +92,10 @@ int convolve_u8(image_u8_view src, image_u8 dst, const int16_t *kernel, size_t k
 
     if (kernel_width > src.width || kernel_height > src.height) {
         return IMAGE_KERNEL_INVALID_DIMENSIONS;
+    }
+
+    if (image_buffers_overlap(src, dst)) {
+        return IMAGE_KERNEL_OVERLAPPING_BUFFERS;
     }
 
     const size_t kernel_x_center = kernel_width / 2;
@@ -96,19 +135,27 @@ int convolve_u8(image_u8_view src, image_u8 dst, const int16_t *kernel, size_t k
     return IMAGE_KERNEL_OK;
 }
 
-void convolve3x3_u8(image_u8_view src, image_u8 dst, const int8_t kernel[9]) {
+int convolve3x3_u8(image_u8_view src, image_u8 dst, const int8_t kernel[9]) {
     int16_t wide_kernel[9];
+
+    if (kernel == 0) {
+        return IMAGE_KERNEL_INVALID_ARGUMENT;
+    }
 
     for (size_t i = 0; i < 9; i++) {
         wide_kernel[i] = (int16_t)kernel[i];
     }
 
-    (void)convolve_u8(src, dst, wide_kernel, 3, 3);
+    return convolve_u8(src, dst, wide_kernel, 3, 3);
 }
 
-void sobel3x3_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
+int sobel3x3_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
     if (!image_shapes_are_valid(src, dst)) {
-        return;
+        return IMAGE_KERNEL_INVALID_ARGUMENT;
+    }
+
+    if (image_buffers_overlap(src, dst)) {
+        return IMAGE_KERNEL_OVERLAPPING_BUFFERS;
     }
 
     for (size_t y = 0; y < src.height; y++) {
@@ -120,7 +167,7 @@ void sobel3x3_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
     }
 
     if (src.width < 3 || src.height < 3) {
-        return;
+        return IMAGE_KERNEL_OK;
     }
 
     for (size_t y = 1; y + 1 < src.height; y++) {
@@ -141,4 +188,6 @@ void sobel3x3_u8(image_u8_view src, image_u8 dst, uint8_t threshold) {
             dst_row[x] = magnitude > threshold ? UINT8_MAX : 0;
         }
     }
+
+    return IMAGE_KERNEL_OK;
 }

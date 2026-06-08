@@ -9,7 +9,9 @@ CPPFLAGS := -Isoftware/include
 UNITY_CPPFLAGS := -Ithird_party/unity/src -DsetUp=set_up -DtearDown=tear_down
 UNITY_SRC := third_party/unity/src/unity.c
 SCALAR_SRCS := software/benchmarks/scalar/main.c software/benchmarks/scalar/dot_product.c
-ML_KERNEL_SRCS := software/benchmarks/scalar/dot_product.c
+ML_KERNEL_SRCS := software/benchmarks/scalar/dot_product.c \
+	software/benchmarks/scalar/gemv.c \
+	software/benchmarks/scalar/quantized_dot_product.c
 ML_TEST_SRCS := software/tests/test_ml_kernels.c $(ML_KERNEL_SRCS) $(UNITY_SRC)
 IMAGE_KERNEL_SRCS := software/benchmarks/scalar/image_kernels.c
 EDGE_DEMO_SRCS := software/benchmarks/scalar/edge_detection_demo.c $(IMAGE_KERNEL_SRCS)
