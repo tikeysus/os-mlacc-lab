@@ -1,4 +1,4 @@
-#include "../../include/image_kernels.h"
+#include "image_kernels.h"
 
 static uint8_t clamp_i32_to_u8(int32_t value) {
     if (value < 0) {

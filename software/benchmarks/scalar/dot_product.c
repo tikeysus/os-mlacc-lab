@@ -1,4 +1,4 @@
-#include "../../include/ml_kernels.h"
+#include "ml_kernels.h"
 
 float dot_product_f32(const float *a, const float *b, size_t n) {
     float sum = 0.0f;

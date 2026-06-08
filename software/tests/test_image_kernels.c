@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../software/include/image_kernels.h"
+#include "image_kernels.h"
 
 static int expect_u8_array(const char *name, const uint8_t *actual, const uint8_t *expected,
                            size_t count) {

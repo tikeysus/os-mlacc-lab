@@ -15,8 +15,17 @@ tracked_files() {
     git -C "$repo_root" ls-files
 }
 
-text_files() {
+project_files() {
     tracked_files | while IFS= read -r file; do
+        case "$file" in
+            third_party/*) ;;
+            *) printf '%s\n' "$file" ;;
+        esac
+    done
+}
+
+text_files() {
+    project_files | while IFS= read -r file; do
         case "$file" in
             *.c|*.h|*.md|*.sh|Makefile|.clang-format|.clang-tidy|.gitignore|scripts/*)
                 printf '%s\n' "$file"
@@ -26,7 +35,7 @@ text_files() {
 }
 
 check_file_hygiene() {
-    tracked_files | while IFS= read -r file; do
+    project_files | while IFS= read -r file; do
         path="$repo_root/$file"
         [ -f "$path" ] || continue
 

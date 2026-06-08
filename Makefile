@@ -42,8 +42,7 @@ run-edge-demo: $(EDGE_DEMO)
 	./$(EDGE_DEMO)
 
 test: $(ML_TEST) $(IMAGE_TEST)
-	./$(ML_TEST)
-	./$(IMAGE_TEST)
+	./scripts/run_tests ./$(ML_TEST) ./$(IMAGE_TEST)
 
 verify:
 	$(MAKE) clean

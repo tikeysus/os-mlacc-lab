@@ -1,8 +1,8 @@
-#include "../../third_party/unity/src/unity.h"
+#include "unity.h"
 
 #include <stddef.h>
 
-#include "../include/ml_kernels.h"
+#include "ml_kernels.h"
 
 void set_up(void) {}
 
