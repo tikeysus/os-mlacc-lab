@@ -2,12 +2,11 @@
 
 Use this area for design decisions and diagrams.
 
-Suggested files to add:
+Files to add:
 
-- `arrow-summary.md`: notes from the Arrow paper and slides
-- `v1-architecture.md`: selected board, scalar core, accelerator style, block diagram, and assumptions
-- `interface-contract.md`: signal responsibilities, register map, memory assumptions, and completion/error behavior
+- `gemm-architecture.md`: platform decision (Kria KV260 vs Arty A7 + RISC-V), systolic array sizing, block diagram
+- `gemm-register-map.md`: eight AXI-Lite CSRs (CTRL, STATUS, DIM_M, DIM_K, DIM_N, A_ADDR, B_ADDR, C_ADDR), offsets, bit semantics, alignment constraints
 
-Current planning:
+Existing reference:
 
-- `register-map-issues.md`: issue breakdown for the v1 software/hardware interface contract
+- `arrow-summary.md`: notes from the Arrow architecture paper (background research)

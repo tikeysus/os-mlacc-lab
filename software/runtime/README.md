@@ -1,11 +1,9 @@
-# Runtime and API
+# Runtime and Driver
 
-Use this area for the software interface that will eventually invoke the accelerator.
+Software interface for invoking the GEMM accelerator.
 
-Expected early content:
+Files to add:
 
-- C API wrappers for vector add, dot product, GEMV, and small matrix multiply
-- register or MMIO access helpers
-- completion, timeout, and error handling
-- accelerator state save/restore definitions
-- one-user-at-a-time or queued-job policy code
+- `gemm_driver.h`: four-function API — `gemm_accel_init`, `gemm_accel_run`, `gemm_accel_wait`, `gemm_accel_status`
+- `gemm_driver_sim.c`: simulation stub; implements the API by calling `gemm_f32` instead of MMIO — testable on any laptop
+- `gemm_driver.c`: MMIO implementation (`/dev/mem` mmap on Linux, or bare-metal volatile writes); written in Phase 3 once the board is chosen
