@@ -39,7 +39,6 @@ comparison in Phase 4.
 
 ## Code Conventions
 
-- No function over 80 lines, no nesting deeper than 4 levels, no source file over 500 lines
 - Unity test naming: `test_<function>_<condition>` — match existing test files exactly
 
 ## What Comes Next (Hardware Path)
