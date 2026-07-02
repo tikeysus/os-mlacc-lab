@@ -6,7 +6,7 @@ GEMM_TEST := $(BUILD_DIR)/test_gemm
 BENCH_HARNESS_TEST := $(BUILD_DIR)/test_benchmark_harness
 CFLAGS ?= -std=c11 -Wall -Wextra -O2
 CPPFLAGS := -Isoftware/include -Isoftware/benchmarks/scalar
-UNITY_CPPFLAGS := -Ithird_party/unity/src -DsetUp=set_up -DtearDown=tear_down
+UNITY_CPPFLAGS := -Ithird_party/unity/src -DsetUp=set_up -DtearDown=tear_down -DUNITY_INCLUDE_DOUBLE
 UNITY_SRC := third_party/unity/src/unity.c
 SCALAR_SRCS := software/benchmarks/scalar/main.c \
 	software/benchmarks/scalar/dot_product.c \
