@@ -45,9 +45,7 @@ static void test_compute_gflops_zero_elapsed_returns_zero(void) {
  * Group 2: clocks_to_us() conversion
  * ------------------------------------------------------------------------- */
 
-static void test_clocks_to_us_zero_ticks(void) {
-    TEST_ASSERT_EQUAL_DOUBLE(0.0, clocks_to_us(0));
-}
+static void test_clocks_to_us_zero_ticks(void) { TEST_ASSERT_EQUAL_DOUBLE(0.0, clocks_to_us(0)); }
 
 static void test_clocks_to_us_one_full_second(void) {
     double result = clocks_to_us((clock_t)CLOCKS_PER_SEC);
@@ -76,35 +74,25 @@ static void test_bench_sweep_size_count_is_five(void) {
 
 static int sizes_contains(size_t val) {
     for (int i = 0; i < BENCH_NUM_SIZES; i++) {
-        if (BENCH_SIZES[i] == val)
+        if (bench_sizes[i] == val)
             return 1;
     }
     return 0;
 }
 
-static void test_bench_sweep_contains_size_8(void) {
-    TEST_ASSERT_TRUE(sizes_contains(8));
-}
+static void test_bench_sweep_contains_size_8(void) { TEST_ASSERT_TRUE(sizes_contains(8)); }
 
-static void test_bench_sweep_contains_size_16(void) {
-    TEST_ASSERT_TRUE(sizes_contains(16));
-}
+static void test_bench_sweep_contains_size_16(void) { TEST_ASSERT_TRUE(sizes_contains(16)); }
 
-static void test_bench_sweep_contains_size_32(void) {
-    TEST_ASSERT_TRUE(sizes_contains(32));
-}
+static void test_bench_sweep_contains_size_32(void) { TEST_ASSERT_TRUE(sizes_contains(32)); }
 
-static void test_bench_sweep_contains_size_64(void) {
-    TEST_ASSERT_TRUE(sizes_contains(64));
-}
+static void test_bench_sweep_contains_size_64(void) { TEST_ASSERT_TRUE(sizes_contains(64)); }
 
-static void test_bench_sweep_contains_size_128(void) {
-    TEST_ASSERT_TRUE(sizes_contains(128));
-}
+static void test_bench_sweep_contains_size_128(void) { TEST_ASSERT_TRUE(sizes_contains(128)); }
 
 static void test_bench_sweep_sizes_are_sorted_ascending(void) {
     for (int i = 0; i < BENCH_NUM_SIZES - 1; i++)
-        TEST_ASSERT_LESS_THAN_size_t(BENCH_SIZES[i + 1], BENCH_SIZES[i]);
+        TEST_ASSERT_LESS_THAN_size_t(bench_sizes[i + 1], bench_sizes[i]);
 }
 
 /* -------------------------------------------------------------------------
@@ -149,25 +137,15 @@ static void check_gemm_f32_identity_at_n(size_t n) {
     free(c);
 }
 
-static void test_gemm_f32_correct_at_benchmark_size_8(void) {
-    check_gemm_f32_identity_at_n(8);
-}
+static void test_gemm_f32_correct_at_benchmark_size_8(void) { check_gemm_f32_identity_at_n(8); }
 
-static void test_gemm_f32_correct_at_benchmark_size_16(void) {
-    check_gemm_f32_identity_at_n(16);
-}
+static void test_gemm_f32_correct_at_benchmark_size_16(void) { check_gemm_f32_identity_at_n(16); }
 
-static void test_gemm_f32_correct_at_benchmark_size_32(void) {
-    check_gemm_f32_identity_at_n(32);
-}
+static void test_gemm_f32_correct_at_benchmark_size_32(void) { check_gemm_f32_identity_at_n(32); }
 
-static void test_gemm_f32_correct_at_benchmark_size_64(void) {
-    check_gemm_f32_identity_at_n(64);
-}
+static void test_gemm_f32_correct_at_benchmark_size_64(void) { check_gemm_f32_identity_at_n(64); }
 
-static void test_gemm_f32_correct_at_benchmark_size_128(void) {
-    check_gemm_f32_identity_at_n(128);
-}
+static void test_gemm_f32_correct_at_benchmark_size_128(void) { check_gemm_f32_identity_at_n(128); }
 
 /* -------------------------------------------------------------------------
  * Group 5: gemm_i8 correctness at each benchmark size
@@ -187,8 +165,8 @@ static void fill_pattern_i8(int8_t *b, size_t n) {
 }
 
 static void check_gemm_i8_identity_at_n(size_t n) {
-    int8_t  *a = (int8_t  *)calloc(n * n, sizeof(int8_t));
-    int8_t  *b = (int8_t  *)calloc(n * n, sizeof(int8_t));
+    int8_t *a = (int8_t *)calloc(n * n, sizeof(int8_t));
+    int8_t *b = (int8_t *)calloc(n * n, sizeof(int8_t));
     int32_t *c = (int32_t *)calloc(n * n, sizeof(int32_t));
 
     fill_identity_i8(a, n);
@@ -209,25 +187,15 @@ static void check_gemm_i8_identity_at_n(size_t n) {
     free(c);
 }
 
-static void test_gemm_i8_correct_at_benchmark_size_8(void) {
-    check_gemm_i8_identity_at_n(8);
-}
+static void test_gemm_i8_correct_at_benchmark_size_8(void) { check_gemm_i8_identity_at_n(8); }
 
-static void test_gemm_i8_correct_at_benchmark_size_16(void) {
-    check_gemm_i8_identity_at_n(16);
-}
+static void test_gemm_i8_correct_at_benchmark_size_16(void) { check_gemm_i8_identity_at_n(16); }
 
-static void test_gemm_i8_correct_at_benchmark_size_32(void) {
-    check_gemm_i8_identity_at_n(32);
-}
+static void test_gemm_i8_correct_at_benchmark_size_32(void) { check_gemm_i8_identity_at_n(32); }
 
-static void test_gemm_i8_correct_at_benchmark_size_64(void) {
-    check_gemm_i8_identity_at_n(64);
-}
+static void test_gemm_i8_correct_at_benchmark_size_64(void) { check_gemm_i8_identity_at_n(64); }
 
-static void test_gemm_i8_correct_at_benchmark_size_128(void) {
-    check_gemm_i8_identity_at_n(128);
-}
+static void test_gemm_i8_correct_at_benchmark_size_128(void) { check_gemm_i8_identity_at_n(128); }
 
 /* -------------------------------------------------------------------------
  * Group 6: bench_gemm_f32() result sanity

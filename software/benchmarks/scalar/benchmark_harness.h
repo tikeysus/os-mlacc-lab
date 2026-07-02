@@ -6,7 +6,7 @@
 
 #define BENCH_NUM_SIZES 5
 
-extern const size_t BENCH_SIZES[BENCH_NUM_SIZES]; /* {8, 16, 32, 64, 128} */
+extern const size_t bench_sizes[BENCH_NUM_SIZES]; /* {8, 16, 32, 64, 128} */
 
 typedef struct {
     double elapsed_s;  /* wall-clock seconds */
