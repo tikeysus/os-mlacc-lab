@@ -2,28 +2,16 @@
 
 ## Project Overview
 
-This is a hardware/software co-design lab: build a working, benchmarked ML accelerator from scratch, modeled after the Arrow architecture, on an FPGA-hosted RISC-V SoC. The goal is to close the full loop from RTL micro-architecture through OS/runtime integration to measured speedup numbers on real hardware.
+This is a hardware/software co-design lab: build a working, benchmarked GEMM (General
+Matrix-Matrix Multiply) accelerator from scratch on a SoC FPGA. The goal is to close the
+full loop from RTL micro-architecture through software driver to measured speedup numbers
+on real hardware.
 
-The project is organized around a 10–12 week roadmap (`docs/roadmap.md`). As of June 2026, Phase 0 (research) is partially done and Phase 1 (scalar software baseline) is ~50% complete. Hardware bring-up and everything from Phase 2 onward has not started.
+The hardware platform is deferred until Phase 3. Everything through Phase 2 is platform-agnostic C and Verilog.
 
-## Repository Layout
-
-```
-hardware/
-  fpga/     FPGA board project, constraints, bring-up notes
-  rtl/      Accelerator RTL modules
-  sim/      RTL testbenches and simulator scripts
-software/
-  benchmarks/scalar/   Scalar C kernel implementations (correctness + perf baseline)
-  include/             Public headers: ml_kernels.h, image_kernels.h
-  runtime/             Future: C API, MMIO helpers, scheduling policy
-  tests/               Unity-based unit tests
-docs/                  Roadmap, architecture notes, issue planning
-scripts/               Repo hygiene and test runner helpers
-tools/                 Setup and reproducibility helpers
-build/                 Generated binaries (not committed)
-third_party/unity/     Unity test framework
-```
+The project follows a 10–12 week roadmap (`docs/roadmap.md`). As of June 2026, the
+hardware-software interface contract is being defined (Phase 0) and the scalar software
+baseline is the active work area (Phase 1).
 
 ## Build and Test
 
@@ -42,37 +30,21 @@ make verify   # clean build with -Werror + tests + repo hygiene checks
 - `dot_product_f32` — f32 dot product
 - `dot_product_i8` — int8 quantized dot product, accumulates into int32
 - `gemv_f32` — general matrix-vector multiply (row-major)
+- `gemm_f32` — general matrix-matrix multiply C = A×B (row-major, f32) [Phase 1]
+- `gemm_i8` — quantized matrix-matrix multiply, int8 inputs → int32 output [Phase 1]
 
-**Image kernels** (`software/include/image_kernels.h`):
-- `threshold_u8` — element-wise threshold
-- `convolve_u8` — general 2D convolution
-- `convolve3x3_u8` — fixed 3×3 convolution
-- `sobel3x3_u8` — Sobel edge detection with threshold
-
-These are the correctness reference and the scalar performance baseline. When the accelerator is built, they get ported to the accelerator API and compared cycle-for-cycle.
+`dot_product_f32` and `gemv_f32` are building blocks of `gemm_f32` and cross-check targets.
+These are the correctness reference and the scalar performance baseline for the accelerator
+comparison in Phase 4.
 
 ## Code Conventions
 
-- C only in `software/` and `hardware/`; `snake_case` for all functions and variables
-- No function over 80 lines, no nesting deeper than 4 levels, no source file over 500 lines
-- Spaces for indentation everywhere except Makefile recipes (tabs)
 - Unity test naming: `test_<function>_<condition>` — match existing test files exactly
-- No comments unless the WHY is non-obvious
-
-## Quality Rules
-
-Enforced by `scripts/check_repo` and `make verify`:
-- No trailing whitespace, no CRLF, no merge conflict markers, no files over 1 MiB
-- No committed build output under `build/`
-- C compiled with `-Wall -Wextra -Werror`
-- Shell scripts: POSIX `sh`, `snake_case` names, executable bit set
 
 ## What Comes Next (Hardware Path)
 
-Phase 2 starts with `hardware/rtl/`: vector register file and SIMD ALU, then either an AXI co-processor or tightly coupled pipeline. Phase 3 fills `software/runtime/`: MMIO access, interrupt/completion handling, context save/restore, one-at-a-time scheduling. Phase 4 ports the scalar kernels to the accelerator API and measures speedup.
-
-## Key Reference Documents
-
-- `docs/roadmap.md` — full phase-by-phase plan
-- `docs/quality.md` — quality check details
-- Arrow paper notes are in `docs/` (summarized from the Arrow architecture paper)
+Phase 2 starts with `hardware/rtl/`: a single processing element (`pe.v`) implementing a
+fused multiply-accumulate cell, then a systolic array (`systolic_array.v`), AXI-Lite CSR
+block (`axi_lite_csr.v`), and top-level wrapper (`gemm_top.v`). Simulation uses Icarus
+Verilog (no Vivado license required). Phase 3 selects the physical board and flashes the
+design. Phase 4 ports the scalar GEMM benchmark to the driver API and measures speedup.

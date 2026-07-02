@@ -2,8 +2,8 @@
 
 Use this area for benchmark definitions and results.
 
-Suggested files to add:
+Files to add:
 
-- `scalar-baseline.md`: cycle counts and outputs for CPU-only kernels
-- `accelerator-results.md`: speedup, wall time, and FPGA resource notes
-- `os-overhead.md`: context switch, driver call, and data movement overheads
+- `scalar-baseline.md`: gemm_f32 and gemm_i8 timing across (M,K,N) sweep on the development CPU
+- `accelerator-results.md`: speedup vs scalar, compute-only vs end-to-end wall time, FPGA resource utilization (LUTs, DSPs, BRAMs)
+- `overhead-breakdown.md`: DMA transfer time, driver call overhead, data movement vs compute ratio

@@ -1,0 +1,11 @@
+# Build artifacts and binaries
+build/
+
+# Git internals
+.git/
+
+# macOS system files
+.DS_Store
+
+# Third-party dependencies (Unity test framework — stable, unmodified)
+third_party/
