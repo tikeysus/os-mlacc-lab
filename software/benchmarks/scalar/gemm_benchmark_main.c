@@ -3,8 +3,7 @@
 #include "benchmark_harness.h"
 
 int main(void) {
-    printf("%-12s %-8s %-14s %-14s %-12s %-12s\n", "kernel", "N", "elapsed_us", "elapsed_s",
-           "GFLOP/s", "");
+    printf("%-12s %-8s %-14s %-14s %-12s\n", "kernel", "N", "elapsed_us", "elapsed_s", "GFLOP/s");
     printf("%-12s %-8s %-14s %-14s %-12s\n", "------------", "--------", "--------------",
            "--------------", "------------");
 

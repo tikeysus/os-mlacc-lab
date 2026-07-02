@@ -9,7 +9,7 @@
 extern const size_t bench_sizes[BENCH_NUM_SIZES]; /* {8, 16, 32, 64, 128} */
 
 typedef struct {
-    double elapsed_s;  /* wall-clock seconds */
+    double elapsed_s;  /* CPU process-time seconds (clock()) */
     double elapsed_us; /* same, in microseconds */
     double gflops;     /* GFLOP/s; 0.0 if elapsed < 1 clock tick */
 } bench_result_t;

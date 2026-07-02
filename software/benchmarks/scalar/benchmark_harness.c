@@ -2,6 +2,7 @@
 #include "ml_kernels.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -19,6 +20,13 @@ bench_result_t bench_gemm_f32(size_t m, size_t k, size_t n) {
     float *a = (float *)calloc(m * k, sizeof(float));
     float *b = (float *)calloc(k * n, sizeof(float));
     float *c = (float *)calloc(m * n, sizeof(float));
+    if (!a || !b || !c) {
+        fputs("bench_gemm_f32: calloc failed\n", stderr);
+        free(a);
+        free(b);
+        free(c);
+        abort();
+    }
 
     for (size_t i = 0; i < m * k; i++)
         a[i] = (float)(i + 1);
@@ -47,6 +55,13 @@ bench_result_t bench_gemm_i8(size_t m, size_t k, size_t n) {
     int8_t *a = (int8_t *)calloc(m * k, sizeof(int8_t));
     int8_t *b = (int8_t *)calloc(k * n, sizeof(int8_t));
     int32_t *c = (int32_t *)calloc(m * n, sizeof(int32_t));
+    if (!a || !b || !c) {
+        fputs("bench_gemm_i8: calloc failed\n", stderr);
+        free(a);
+        free(b);
+        free(c);
+        abort();
+    }
 
     for (size_t i = 0; i < m * k; i++)
         a[i] = (int8_t)((i % 100) + 1);
