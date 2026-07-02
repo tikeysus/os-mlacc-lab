@@ -182,7 +182,7 @@ check_clang_tidy() {
 
     find "$repo_root/software" -type f -name '*.c' | while IFS= read -r path; do
         file=${path#"$repo_root/"}
-        clang-tidy "$path" --header-filter="^$repo_root/software/.*" --exclude-header-filter=".*/third_party/.*" -- -I"$repo_root/software/include" -isystem "$repo_root/third_party/unity/src" -DsetUp=set_up -DtearDown=tear_down -std=c11 $sysroot_args || fail "$file failed clang-tidy"
+        clang-tidy "$path" --header-filter="^$repo_root/software/.*" --exclude-header-filter=".*/third_party/.*" -- -I"$repo_root/software/include" -I"$repo_root/software/benchmarks/scalar" -isystem "$repo_root/third_party/unity/src" -DsetUp=set_up -DtearDown=tear_down -DUNITY_INCLUDE_DOUBLE -std=c11 $sysroot_args || fail "$file failed clang-tidy"
     done
 }
 
