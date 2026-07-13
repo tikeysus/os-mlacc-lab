@@ -12,7 +12,7 @@ The accelerator is implemented as an **AXI-Lite attached systolic array**, paire
 
 The core compute engine is an **N×N grid of processing elements (PEs)**, where N is parameterized and chosen per platform constraints discovered in Phase 3.
 
-**Phase 0 assumption: N = 8** (8×8 PE array). This is a reasonable starting point for mid-range FPGAs (Kria) and a conservative target for tighter platforms (Arty A7).
+**Phase 0 assumption: N = 8** (8×8 PE array). This is a reasonable starting point for mid-range FPGAs and a conservative target for resource-constrained platforms.
 
 #### Per-PE Cost Estimate
 
@@ -30,7 +30,7 @@ For an 8×8 array:
 - PE grid: 64 PEs × 300 LUTs ≈ **19.2K LUTs** (rough estimate)
 - Local scratch BRAM for A/B input buffering and C accumulation: **~500 KB BRAM** (all on-chip)
 
-Scaling: cost grows O(N²). For N=4 (Arty-sized), divide by 4. For N=16 (if resources permit), multiply by 4.
+Scaling: cost grows O(N²). For N=4 (resource-constrained platforms), divide by 4. For N=16 (resource-rich platforms), multiply by 4.
 
 ### Tile and Input Blocksize
 
@@ -48,7 +48,6 @@ The choice of tile is orthogonal to PE array size. A smaller tile can be process
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Host Processing System (CPU)              │
-│                   (ARM on Kria / RISC-V on Arty)             │
 └────────────────────────┬────────────────────────────────────┘
                          │ AXI-Lite
                          ▼
@@ -88,7 +87,7 @@ The choice of tile is orthogonal to PE array size. A smaller tile can be process
 - **Nominal frequency: 100 MHz** (subject to timing closure in Phase 3)
 - **Pipeline depth**: ~3–5 cycles per PE (registered A/B pass-through and accumulation)
 
-Once a platform is selected, timing analysis will validate this assumption. Arty A7 typically achieves 80–100 MHz; Kria can exceed 200 MHz with conservative synthesis.
+Once a platform is selected, timing analysis will validate this assumption. Resource-constrained platforms typically achieve 80–100 MHz; higher-end platforms can exceed 200 MHz with conservative synthesis.
 
 ### Memory Hierarchy
 
@@ -136,26 +135,6 @@ CSRs are frozen per issue #10 before Phase 2 RTL begins.
 - Cache coherency
 - Interrupt-driven completion (polling only in v1)
 - Multi-PE pipelining or systolic optimization beyond the basic dataflow
-
-## Platform Flexibility
-
-This architecture is designed to map to **two different platforms in Phase 3**:
-
-### Kria KV260 Path
-- Hard ARM Cortex-A53 CPU
-- Vivado/Vitis HLS synthesis
-- Larger BRAM budget (~8.7 MB) → supports 8×8 array comfortably
-- Native DDR4 support via Xilinx MIG
-- `/dev/mem` MMIO via Linux
-
-### Arty A7 + RISC-V Soft-Core Path
-- VexRiscv (open-source soft-core) synthesized in fabric
-- Yosys + nextpnr open-source toolchain
-- Tighter BRAM/LUT budget (~450 KB / ~50K LUTs) → 4×4 array realistic
-- External SRAM or on-chip memory only
-- Bare-metal or CFU Playground
-
-**Key insight:** The ISA, CSR layout, and state machine are identical on both platforms. Synthesis and memory integration differ, but the RTL contract stays unchanged.
 
 ## Validation Plan
 
