@@ -41,6 +41,10 @@ comparison in Phase 4.
 
 - Unity test naming: `test_<function>_<condition>` — match existing test files exactly
 
+## Issue Priority Ordering
+
+See GitHub issues ordered by dependency and phase: #1 (scope) → #10 (register map) → #11 (RTL) → #3 (board) → #12 (driver) → #18 (HW test) → #13 (benchmark) → #17 (MMIO) → #21 (stretch) → #19 (robustness) → #20 (report).
+
 ## What Comes Next (Hardware Path)
 
 Phase 2 starts with `hardware/rtl/`: a single processing element (`pe.v`) implementing a
